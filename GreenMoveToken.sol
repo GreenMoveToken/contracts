@@ -30,6 +30,7 @@ contract GreenMoveToken is Ownable, ERC20 {
   address public signer;
   mapping (address => bool) public solvedCaptchas;
   bool public antiBotEnabled;
+  bool public launched;
   mapping (uint256 => uint256) public nonces;
   mapping (uint256 => mapping (uint256 => bool)) public usedNonces;
 
@@ -40,6 +41,7 @@ contract GreenMoveToken is Ownable, ERC20 {
   event SignerChanged(address indexed previousSigner, address indexed newSigner);
   event CaptchaSolved(address indexed account);
   event AntiBotEnabledChanged(bool previousAntiBotEnabled, bool newAntiBotEnabled);
+  event Launched();
   event ChainTransfer(uint256 srcChain, uint256 dstChain, uint256 nonce, address indexed sender, address indexed recipient, uint256 amount);
 
   constructor() ERC20("Green Move", "GM") {
@@ -117,6 +119,7 @@ contract GreenMoveToken is Ownable, ERC20 {
     require(sender != address(0), "GreenMoveToken: transfer from the zero address");
     require(recipient != address(0), "GreenMoveToken: transfer to the zero address");
     require(recipient != _pair || !antiBotEnabled || solvedCaptchas[sender], "GreenMoveToken: anti-bot captcha not solved");
+    require(sender != _pair || launched, "GreenMoveToken: not launched yet");
     _updateBalance(sender, amount, false);
 
     if (_balances[_pair] != 0) { // no fee until initial liquidity was provided
@@ -223,6 +226,11 @@ contract GreenMoveToken is Ownable, ERC20 {
   function setAntiBotEnabled(bool _antiBotEnabled) external onlyOwner {
     emit AntiBotEnabledChanged(antiBotEnabled, _antiBotEnabled);
     antiBotEnabled = _antiBotEnabled;
+  }
+
+  function launch() external onlyOwner {
+    launched = true;
+    emit Launched();
   }
 
   function sendToChain(uint256 dstChain, address recipient, uint256 amount) external {
