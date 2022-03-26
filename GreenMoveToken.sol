@@ -21,6 +21,8 @@ contract GreenMoveToken is Ownable, ERC20 {
 
   uint256 public holders;
   mapping (address => uint256) public lastTransfer;
+  uint256 public rewarded;
+  uint256 public donated;
   uint256 public fee;
   address public charityWallet;
   address public marketingWallet;
@@ -157,6 +159,7 @@ contract GreenMoveToken is Ownable, ERC20 {
             charity = _fee * 15 / 100; // send 15% of fee to charity wallet
             _updateBalance(charityWallet, charity, true);
             emit Transfer(address(this), charityWallet, charity);
+            donated += charity;
           }
 
           if (marketingWallet != address(0)) {
@@ -169,6 +172,7 @@ contract GreenMoveToken is Ownable, ERC20 {
           _updateBalance(developmentWallet, _fee, true);
           emit Transfer(address(this), developmentWallet, _fee);
           _accumulatedReflection += reflection * 10 ** decimals() / (_totalSupply - _balances[address(this)] - _balances[DEAD] - _balances[_pair]);
+          rewarded += reflection;
           return;
         }
       }
